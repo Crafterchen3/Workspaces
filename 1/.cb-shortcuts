@@ -1,0 +1,14 @@
+{
+  {
+    y = 8,
+    x = 4,
+    name = "Terminal",
+    path = "craftbang/terminal",
+  },
+  {
+    y = 4,
+    x = 73,
+    name = "shell.lua",
+    path = "rom/programs/shell.lua",
+  },
+}

@@ -1,0 +1,130 @@
+--[[
+This paste stores all the store codes and website codes for Super Text Downloader (STD).
+Contract your STD with:
+ pastebin get 3PBKGR4k std
+ pastebin get P9dDhQ2m stdgui 
+--]]
+
+local latestVersion = 1.451 --Latest version of STD. Number, not string!
+
+if not std then std = {} end
+
+std.websiteSyntaxes = { --List of websites used with STD.
+	pb = {
+		url = "http://pastebin.com/raw.php?i=FILECODE",	--Download URL (With FILECODE gsub'd with the file ID)
+		fullName = "Pastebin",							--Full name of the download host
+		codeLength = 8,									--Expected amount of characters in file ID (0 if not standard length)
+	},
+	hb = {
+		url = "http://hastebin.com/raw/FILECODE",
+		fullName = "Hastebin",
+		codeLength = 10,
+	},
+	pe = {
+		url = "http://pastie.org/pastes/FILECODE/download",
+		fullName = "Pastie",
+		codeLength = 0,
+	},
+	fn = {
+		url = "https://fnpaste.com/FILECODE/raw",
+		fullName = "fnPaste",
+		codeLength = 4,
+	},
+	gh = {
+		url = "https://raw.githubusercontent.com/FILECODE",
+		fullName = "Github",
+		codeLength = 0,
+	},
+	gg = {
+		url = "https://gist.githubusercontent.com/FILECODE/raw/",
+		fullName = "Github Gist",
+		codeLength = 0,
+	},
+	sn = {
+		url = "http://s.drk.sc/FILECODE",
+		fullName = "Snippt",
+		codeLength = 6,
+	},
+	cp = {
+		url = "http://codepad.org/FILECODE/raw.txt",
+		fullName = "Codepad",
+		codeLength = 8,
+	},
+	id = {
+		url = "http://ideone.com/plain/FILECODE",
+		fullName = "Ideone",
+		codeLength = 6,
+	},
+	db = {
+		url = "https://www.dropbox.com/s/FILECODE?raw=true",
+		fullName = "Dropbox",
+		codeLength = 0,
+	},
+	dd = {
+		url = "FILECODE",
+		fullName = "Direct Download",
+		codeLength = 0,
+	},
+	ts = {
+		url = "http://turtlescripts.com/downloadScript.php?id=FILECODE",
+		fullName = "TurtleScripts",
+		codeLength = 6,
+	},
+	PB = {
+		url = "",
+		fullName = "Pastebin (safe)",
+		codeLength = 8,
+	},
+}
+
+local bug = [[
+      ,_      _,
+        '.__.'
+   '-,   (__)   ,-'
+     '._ .::. _.'
+       _'(^^)'_
+    _,` `>\/<` `,_
+   `  ,-` )( `-,  `
+      |  /==\  |
+    ,-'  |=-|  '-,
+         )-=(
+         \__/
+]]
+
+if std.serious == false and math.random(1,64) == 1 then
+	if term.isColor() then term.setTextColor(colors.red) end
+	print(bug)
+	term.setTextColor(colors.black)
+	print("oh nooes!! it a bug!!! kill eet")
+	sleep(3)
+end
+
+local function updateSTD()
+	local path = std_file
+	if not path then
+		path = fs.combine(shell.dir(),"std")
+	end
+	if fs.isReadOnly(path) then
+		print("STD v"..latestVersion.." is out.")
+		return false
+	else
+		print("Updating STD to "..latestVersion.."...")
+	end
+	local program = http.get("http://pastebin.com/raw/3PBKGR4k")
+	if not program then
+		error("Unable to download!")
+	end
+	local file = fs.open(path,"w")
+	file.writeLine(program.readAll())
+	file.close()
+	print("Updated.")
+	error()
+end
+
+if not std.std_version then
+	updateSTD()
+else
+	if std.std_version < latestVersion then
+		updateSTD()
+	end
+end

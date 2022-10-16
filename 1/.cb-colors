@@ -1,0 +1,11 @@
+panel               lightGray
+activePanelText     lightGray
+activePanel         gray
+dialogButtonText    lightGray
+dialogButton        gray
+dialogText          gray
+panelText           gray
+dialogBorder        gray
+background          orange
+icon                red
+dialog              lightGray

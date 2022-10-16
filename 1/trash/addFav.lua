@@ -1,0 +1,5 @@
+n = read()
+r = read()
+fav = settings.get("favorites")
+table.insert(fav,{name=n,run=r})
+settings.set("favorites",fav)

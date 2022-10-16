@@ -1,0 +1,27 @@
+multishell.setTitle(multishell.getCurrent(), "control")
+local current = term.current()
+local ok, err = load("main = coroutine.create(function () shell.run(\"shell\") end)\
+\
+while true do\
+    raw = table.pack(os.pullEventRaw())\
+    coroutine.resume(main,table.unpack(raw))\
+end", "@control.lua", nil, _ENV)
+if ok then ok, err = pcall(ok, ...) end
+term.redirect(current)
+term.setTextColor(term.isColour() and colours.yellow or colours.white)
+term.setBackgroundColor(colours.black)
+term.setCursorBlink(false)
+local _, y = term.getCursorPos()
+local _, h = term.getSize()
+if not ok then
+    printError(err)
+end
+if ok and y >= h then
+    term.scroll(1)
+end
+term.setCursorPos(1, h)
+if ok then
+    write("Program finished. ")
+end
+write("Press any key to continue")
+os.pullEvent('key')
