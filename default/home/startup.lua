@@ -45,6 +45,7 @@ ccart_width = 10
 
 
 local lines, sw, sh = 2, term.getSize()
+term.clear()
 for i = 1, string.len(ccart), ccart_width do 
     term.setCursorPos(x, lines+y)
     term.blit(string.sub(ccart, i, i+ccart_width-2), string.sub(term.isColor() and ccart_adv_fg or ccart_fg, i, i+ccart_width-2), string.sub(term.isColor() and ccart_adv_bg or ccart_bg, i, i+ccart_width-2))
@@ -56,24 +57,14 @@ end
 term.clear()
 sleep(0.1)
 local old = {}
-local fss = {}
-local workspace = {current="default",list={"default"}}
-periphemu.create("monitor","monitor")
-mon = peripheral.wrap("monitor")
-
-function des(...)
-    cur = term.current()
-    term.redirect(mon)
-    print(table.unpack(arg))
-    term.redirect(cur)
-end
+local workspace = {current=1,n=1}
 
 if fs.exists("/workspace.json") == false then
     file = fs.open("/workspace.json","w")
     file.write(textutils.serialise(workspace))
     file.close()
-    fs.makeDir("default")
-    fs.copy("/rom","/default/rom")
+    fs.makeDir("1")
+    fs.copy("/rom","/1/rom")
 else
     file = fs.open("/workspace.json","r")
     workspace = textutils.unserialise(file.readAll())
@@ -93,14 +84,12 @@ end
 
 local function getPath(path)
     local resolved = shell.resolve(path)
-    des(path,"/"..workspace.current.."/"..resolved)
     return "/"..workspace.current.."/"..resolved
 end
 
 local function copy()
     for k,v in pairs(fs) do
         old[k] = v
-        fss[k] = v
     end
 end
 
@@ -110,36 +99,32 @@ function shell.getWorkspace()
     return workspace
 end
 
-function fss.open(file,mode)
+function fs.open(file,mode)
     return old.open(getPath(file),mode)
 end
 
-function fss.list(a)
+function fs.list(a)
     return old.list(getPath(a))
 end
 
-function fss.move(a,b)
+function fs.move(a,b)
     return old.move(getPath(a),getPath(b))
 end
 
-function fss.delete(a)
+function fs.delete(a)
     return old.delete(getPath(a))
 end
 
-function fss.exists(a)
+function fs.exists(a)
     return old.exists(getPath(a))
 end
 
-function fss.copy(a,b)
+function fs.copy(a,b)
     return old.copy(getPath(a),getPath(b))
 end
 
-function fss.isDir(a)
+function fs.isDir(a)
     return old.isDir(getPath(a))
-end
-
-function fss.find(a)
-    return old.find(getPath(a))
 end
 
 function progress()
@@ -159,57 +144,6 @@ function progress()
     end
 end
 
-function menu()
-    w,h = term.getSize()
-    function center(y,text)
-        term.setCursorPos((w/2)-(string.len(text)/2),y)
-        term.write(text)
-    end
-    function drawB()
-    term.setBackgroundColor(colors.black)
-    term.clear()
-    center(2,"CraftBoot Menu v1.0")
-    center(4,"Currently Selected Workspace: ")
-    center(5,tostring(workspace.current))
-    term.setTextColor(colors.white)
-    end
-    function wSelect()
-        drawB()
-        selectionB = 1
-        bRun
-    end
-    
-    slection = 1
-    bRunning = true
-    while bRunning do
-        drawB()
-        center(h/2-1,"  Select Workspace  ")
-        center(h/2,"  Create Workspace  ")
-        center(h/2+1,"  Delete Workspace  ")
-        center(h/2+2,"  Quit  ")
-        if selection == 1 then
-            center(h/2-1,"< Select Workspace >")
-        elseif selection == 2 then
-            center(h/2,"< Create Workspace >")
-        elseif selection == 3 then
-            center(h/2+1,"< Delete Workspace >")
-        else
-            center(h/2+2,"< Quit >")
-        end
-        e,key = os.pullEvent("key")
-        if key == keys.down and selection ~= 4 then
-            selection = selection +1
-        elseif key == keys.up and selection ~= 1 then
-            selection = selection -1
-        elseif key == keys.enter then
-            if selection == 4 then
-                bRunning = false
-            end
-        end
-    end
-    bootManager()
-end
-
 function bootManager()
     term.clear()
     term.setCursorPos(1,1)
@@ -220,13 +154,31 @@ function bootManager()
     local change = false
     parallel.waitForAny(function() while change == false do e,key = os.pullEvent("key") if key == keys.f2 then change = true end end end,progress)
     if change then
-        menu()
+        sleep()
+        term.setBackgroundColor(colors.black)
+        term.setCursorPos(1,1)
+        print("Currently selected workspace: "..n)
+        print("Please type the preffered workspace: ")
+        id = tonumber(read())
+        if workspace.n<id then
+            print("Workspace "..id.." doesn't exist. Create it? [Y/N]")
+            ev,key = os.pullEvent("key")
+            if key == keys.y then
+                shell.createWorkspace()
+                workspace.current = id
+            end
+        else
+            workspace.current = id
+        end
+        file = old.open("/workspace.json","w")
+        file.flush()
+        file.write(textutils.serialise(workspace))
+        file.close()
+        bootManager()
     end
 end
 
-
 bootManager()
-_G["fs"] = fss
 term.setBackgroundColor(colors.black)
 term.clear()
 term.setCursorPos(1,1)

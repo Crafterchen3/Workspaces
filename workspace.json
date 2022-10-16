@@ -1,4 +1,6 @@
 {
-  n = 4,
-  current = 1,
+  list = {
+    "default",
+  },
+  current = "default",
 }
