@@ -58,15 +58,6 @@ sleep(0.1)
 local old = {}
 local fss = {}
 local workspace = {current="default",list={"default"}}
-periphemu.create("monitor","monitor")
-mon = peripheral.wrap("monitor")
-
-function des(...)
-    cur = term.current()
-    term.redirect(mon)
-    print(table.unpack(arg))
-    term.redirect(cur)
-end
 
 if fs.exists("/workspace.json") == false then
     file = fs.open("/workspace.json","w")
@@ -93,7 +84,6 @@ end
 
 local function getPath(path)
     local resolved = shell.resolve(path)
-    des(path,"/"..workspace.current.."/"..resolved)
     return "/"..workspace.current.."/"..resolved
 end
 
@@ -159,6 +149,13 @@ function progress()
     end
 end
 
+function save()
+    file = old.open("/workspace.json","w")
+    file.flush()
+    file.write(textutils.serialise(workspace))
+    file.close()
+end
+
 function menu()
     w,h = term.getSize()
     function center(y,text)
@@ -174,12 +171,30 @@ function menu()
     term.setTextColor(colors.white)
     end
     function wSelect()
-        drawB()
-        selectionB = 1
-        bRun
+        selectionb = 1
+        aRunning = true
+        while aRunning do
+            drawB()
+            local start = h/2-(table.maxn(workspace.list)/2)
+            for key, value in pairs(workspace.list) do
+                if selectionb == key then
+                    center(key+start,"< "..value.." >")
+                else
+                    center(key+start,"  "..value.."  ")
+                end
+            end
+            e,key = os.pullEvent("key")
+            if key == keys.down and selectionb ~= table.maxn(workspace.list) then
+                selectionb = selectionb +1
+            elseif key == keys.up and selectionb ~= 1 then
+                selectionb = selectionb -1
+            elseif key == keys.enter then
+                return selectionb
+            end
+        end
     end
     
-    slection = 1
+    selection = 1
     bRunning = true
     while bRunning do
         drawB()
@@ -202,7 +217,30 @@ function menu()
         elseif key == keys.up and selection ~= 1 then
             selection = selection -1
         elseif key == keys.enter then
-            if selection == 4 then
+            if selection == 1 then
+                s = wSelect()
+                workspace.current = workspace.list[s]
+                save()
+            elseif selection == 2 then
+                drawB()
+                center(h/2,"Please type the name of the new Workspace")
+                term.setCursorPos(w/2,h/2+1)
+                name = read()
+                table.insert(workspace.list,name)
+                workspace.current = name
+                save()
+                old.makeDir("/"..name)
+                old.copy("/rom","/"..name.."/rom")
+            elseif selection == 3 then
+                s = wSelect()
+                work = workspace.list[s]
+                table.remove(workspace.list,s)
+                if workspace.current == work then
+                    workspace.current = workspace.list[1]
+                end
+                fs.delete("/"..work)
+                save()
+            elseif selection == 4 then
                 bRunning = false
             end
         end
